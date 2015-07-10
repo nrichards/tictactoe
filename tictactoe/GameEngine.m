@@ -14,7 +14,7 @@
     self = [super init];
     if (self) {
         _status = GameEngineStatusClear;
-        _board = [[GameEngineBoard alloc] init];
+        _board = [[GameBoard alloc] init];
     }
     return self;
 }
@@ -42,7 +42,7 @@
     
     NSArray *vectorAttributes = [[self board] vectorAttributes];
     
-    for (GameEngineBoardVectorAttributes *attribute in vectorAttributes) {
+    for (GameBoardVectorAttributes *attribute in vectorAttributes) {
         if (attribute.score == kGEBoardDimension) {
             _status = GameEngineStatusComplete;
             _winningVectorIdentifier = attribute.identifier;
@@ -80,7 +80,7 @@
     
     // Defensive
     
-    NSArray *sortedAttributes = [attributes sortedArrayUsingComparator:^(GameEngineBoardVectorAttributes *attribute1, GameEngineBoardVectorAttributes *attribute2) {
+    NSArray *sortedAttributes = [attributes sortedArrayUsingComparator:^(GameBoardVectorAttributes *attribute1, GameBoardVectorAttributes *attribute2) {
         NSComparisonResult result = NSOrderedSame;
         
         // Consider score
@@ -125,11 +125,11 @@
     
     // If the opponent is not about to win, or if I am about to win, then order based upon the vector most likely to win
     NSUInteger index1 = 0, index2 = 0;
-    NSInteger opponentHighScore = ABS(((GameEngineBoardVectorAttributes*)[sortedAttributes lastObject]).score);
+    NSInteger opponentHighScore = ABS(((GameBoardVectorAttributes*)[sortedAttributes lastObject]).score);
     NSInteger myHighScore = 0;
     
     for (NSUInteger index = 0; index < sortedAttributes.count; index++) {
-        GameEngineBoardVectorAttributes *attribute = [sortedAttributes objectAtIndex:index];
+        GameBoardVectorAttributes *attribute = [sortedAttributes objectAtIndex:index];
         if (attribute.isPlayable) {
             myHighScore = attribute.score;
             index1 = index;
@@ -164,7 +164,7 @@
         NSArray *sortedAttributes = [self orderByTacticalWorthAscending:attributes forPiece:piece];
         
         // return the highest tactical value record, if any
-        GameEngineBoardVectorAttributes *highestValueAttribute = [sortedAttributes lastObject];
+        GameBoardVectorAttributes *highestValueAttribute = [sortedAttributes lastObject];
         if (highestValueAttribute.isPlayable) {
             found = [[self board] firstPlayablePositionForVectorIdentifier:highestValueAttribute.identifier position:position];
         }

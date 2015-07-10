@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "GameEngineBoard.h"
+#import "GameBoard.h"
 
 #pragma mark - GameEngine support data structures
 
@@ -28,7 +28,7 @@ typedef NS_ENUM(NSUInteger, GameEngineStatus) {
 
 @property(nonatomic,readonly) GameEngineStatus status;
 @property(nonatomic,readonly) NSUInteger winningVectorIdentifier;
-@property(nonatomic,retain) GameEngineBoard *board;
+@property(nonatomic,retain) GameBoard *board;
 
 #pragma mark - Pieces and places
 

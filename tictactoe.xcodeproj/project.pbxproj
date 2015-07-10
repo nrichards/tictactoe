@@ -15,7 +15,7 @@
 		011EED561B4DEF70005176C6 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 011EED541B4DEF70005176C6 /* LaunchScreen.xib */; };
 		011EED621B4DEF70005176C6 /* tictactoeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 011EED611B4DEF70005176C6 /* tictactoeTests.m */; };
 		011EED6E1B4DF64A005176C6 /* GameEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 011EED6D1B4DF64A005176C6 /* GameEngine.m */; };
-		011EED711B4F644A005176C6 /* GameEngineBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 011EED701B4F644A005176C6 /* GameEngineBoard.m */; };
+		011EED711B4F644A005176C6 /* GameBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 011EED701B4F644A005176C6 /* GameBoard.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,8 +44,8 @@
 		011EED611B4DEF70005176C6 /* tictactoeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = tictactoeTests.m; sourceTree = "<group>"; };
 		011EED6C1B4DF64A005176C6 /* GameEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameEngine.h; sourceTree = "<group>"; };
 		011EED6D1B4DF64A005176C6 /* GameEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameEngine.m; sourceTree = "<group>"; };
-		011EED6F1B4F644A005176C6 /* GameEngineBoard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameEngineBoard.h; sourceTree = "<group>"; };
-		011EED701B4F644A005176C6 /* GameEngineBoard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameEngineBoard.m; sourceTree = "<group>"; };
+		011EED6F1B4F644A005176C6 /* GameBoard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameBoard.h; sourceTree = "<group>"; };
+		011EED701B4F644A005176C6 /* GameBoard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameBoard.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,8 +97,8 @@
 				011EED451B4DEF70005176C6 /* Supporting Files */,
 				011EED6C1B4DF64A005176C6 /* GameEngine.h */,
 				011EED6D1B4DF64A005176C6 /* GameEngine.m */,
-				011EED6F1B4F644A005176C6 /* GameEngineBoard.h */,
-				011EED701B4F644A005176C6 /* GameEngineBoard.m */,
+				011EED6F1B4F644A005176C6 /* GameBoard.h */,
+				011EED701B4F644A005176C6 /* GameBoard.m */,
 			);
 			path = tictactoe;
 			sourceTree = "<group>";
@@ -232,7 +232,7 @@
 				011EED4E1B4DEF70005176C6 /* ViewController.m in Sources */,
 				011EED4B1B4DEF70005176C6 /* AppDelegate.m in Sources */,
 				011EED481B4DEF70005176C6 /* main.m in Sources */,
-				011EED711B4F644A005176C6 /* GameEngineBoard.m in Sources */,
+				011EED711B4F644A005176C6 /* GameBoard.m in Sources */,
 				011EED6E1B4DF64A005176C6 /* GameEngine.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

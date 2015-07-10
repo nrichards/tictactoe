@@ -1,5 +1,5 @@
 //
-//  GameEngineBoard.h
+//  GameBoard.h
 //  tictactoe
 //
 //  Created by Nicholas Richards on 7/9/15.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#pragma mark - GameEngineBoard support data structures
+#pragma mark - GameBoard support data structures
 
 // Board size
 static const NSUInteger kGEBoardDimension = 3;
@@ -30,10 +30,10 @@ struct GameEnginePosition {
 };
 typedef struct GameEnginePosition GameEnginePosition;
 
-#pragma mark - GameEngineBoardVectorAttributes
+#pragma mark - GameBoardVectorAttributes
 
 // Board status - how a particular row/column/diagonal success-vector is doing tactically
-@interface GameEngineBoardVectorAttributes : NSObject
+@interface GameBoardVectorAttributes : NSObject
 
 @property(nonatomic,assign) NSUInteger identifier; // 8 id's: row 0,1,2, column 0,1,2, diagonal 0(topleft -> bottomright),1(bottomleft -> topright)
 @property(nonatomic,assign) NSInteger score; // how much this vector leans to player one or player two
@@ -43,10 +43,10 @@ typedef struct GameEnginePosition GameEnginePosition;
 
 @end
 
-#pragma mark - GameEngineBoard
+#pragma mark - GameBoard
 
 // Board - the backing data structure and helpers
-@interface GameEngineBoard : NSObject
+@interface GameBoard : NSObject
 
 @property(nonatomic) GameEnginePiece *pieces; // Standard C array
 

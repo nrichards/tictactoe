@@ -1,16 +1,16 @@
 //
-//  GameEngineBoard.m
+//  GameBoard.m
 //  tictactoe
 //
 //  Created by Nicholas Richards on 7/9/15.
 //  Copyright (c) 2015 Nicholas Richards. All rights reserved.
 //
 
-#import "GameEngineBoard.h"
+#import "GameBoard.h"
 
-#pragma mark - GameEngineBoardVectorAttributes
+#pragma mark - GameBoardVectorAttributes
 
-@implementation GameEngineBoardVectorAttributes
+@implementation GameBoardVectorAttributes
 
 - (instancetype)initWithIdentifier:(NSUInteger)identifier {
     self = [super init];
@@ -27,9 +27,9 @@
 
 @end
 
-#pragma mark - GameEngineBoard
+#pragma mark - GameBoard
 
-@implementation GameEngineBoard
+@implementation GameBoard
 
 - (instancetype)init {
     self = [super init];
@@ -76,12 +76,12 @@
     // FIXME optimize over-setting isPlayable
     
     NSMutableArray *attributes = [NSMutableArray arrayWithCapacity:kGEBoardVectorCount];
-    GameEngineBoardVectorAttributes *attribute;
+    GameBoardVectorAttributes *attribute;
     NSUInteger identifier = 0;
     
     // Walk across the columns of each row
     for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithIdentifier:identifier++];
+        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
         [attributes addObject:attribute];
         NSUInteger score = 0;
         
@@ -99,7 +99,7 @@
     
     // Walk across the rows of each column
     for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithIdentifier:identifier++];
+        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
         [attributes addObject:attribute];
         NSUInteger score = 0;
         
@@ -117,7 +117,7 @@
     
     // Walk across each diagonal, starting at either top-left or bottom-left
     for (NSUInteger diagonal = 0; diagonal < 2; diagonal++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithIdentifier:identifier++];
+        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
         [attributes addObject:attribute];
         NSUInteger score = 0;
         

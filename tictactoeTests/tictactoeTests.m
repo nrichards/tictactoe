@@ -27,20 +27,6 @@
     [super tearDown];
 }
 
-///////////////////////////////////////////////
-
-// Test Board model
-// Test Solution model
-// Test GameEngine
-// - IsGameOver
-// - IsPlaceAvailable
-// - SetPlaceWithPiece
-// - GetPieceAtPlace
-// - ComputeNextCPUPlace
-// - SetOptionWithValue
-// - (NSArray*) orderByPositiveSum:(NSArray*)solutions
-// -
-
 #pragma mark - Game
 
 - (void)testCreateGameEngine {
@@ -72,7 +58,7 @@
     // ~,~,~
     // ~,~,~
 
-    // Turn 1
+    // Turn 1 - CPU
 
     GameEnginePosition position1 = {0};
     BOOL found1 = [gameEngine solveForPiece:GameEnginePiecePlayerOne position:&position1];
@@ -88,7 +74,7 @@
     // Test over-setting
     XCTAssertThrows([gameEngine setPosition:position1 withPiece:GameEnginePiecePlayerOne]);
 
-    // Turn 2
+    // Turn 2 - Human
 
     GameEnginePosition position2 = {.row=1, .column=1};
     [gameEngine setPosition:position2 withPiece:GameEnginePiecePlayerTwo];
@@ -149,7 +135,7 @@
     // x,o,o
     // X,~,~
 
-    // Test status when game has been won by a move
+    // Status when game has been won by a move
     
     XCTAssertEqual(gameEngine.status, GameEngineStatusComplete);
     XCTAssertEqual(gameEngine.winningVectorIdentifier, 3);
@@ -158,7 +144,7 @@
 #pragma mark - Board
 
 - (void)testCreateBoard {
-    GameEngineBoard* gameEngineBoard = [[GameEngineBoard alloc] init];
+    GameBoard* gameEngineBoard = [[GameBoard alloc] init];
     XCTAssert(gameEngineBoard != nil);
 }
 
@@ -201,43 +187,43 @@
 
     // row 0
     identifier = 0;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, NO);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, NO);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
     for (NSUInteger row = 1; row <= 2; row++) {
         // row 1,2
         identifier = row;
-        XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-        XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-        XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 0);
+        XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+        XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+        XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 0);
     }
     
     // column 0
     identifier = 3;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
     // column 1
     identifier = 4;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, -1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, -1);
     // column 2
     identifier = 5;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
 
     // diagonal 0
     identifier = 6;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
     // diagonal 1
     identifier = 7;
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).identifier, identifier);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).isPlayable, YES);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
 }
 
 - (void)testBoardVectorAttributes_orderByTacticalWorthAscending {
@@ -257,14 +243,14 @@
     // Ensure the ordering is appropriate to the given piece, and playability is considered
     
     NSArray *orderedAttributesOne = [gameEngine orderByTacticalWorthAscending:vectorAttributes forPiece:GameEnginePiecePlayerOne];
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesOne firstObject]).isPlayable, NO);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesOne objectAtIndex:1]).score, 1);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesOne lastObject]).score, 2);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne firstObject]).isPlayable, NO);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne objectAtIndex:1]).score, 1);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne lastObject]).score, 2);
     
     NSArray *orderedAttributesTwo = [gameEngine orderByTacticalWorthAscending:vectorAttributes forPiece:GameEnginePiecePlayerTwo];
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesTwo firstObject]).isPlayable, NO);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesTwo objectAtIndex:1]).score, -2);
-    XCTAssertEqual(((GameEngineBoardVectorAttributes*)[orderedAttributesTwo lastObject]).score, 2);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo firstObject]).isPlayable, NO);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo objectAtIndex:1]).score, -2);
+    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo lastObject]).score, 2);
 }
 
 - (void)testBoard_playablePosition {
