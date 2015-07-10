@@ -2,6 +2,7 @@
 Mobile Tic-Tac-Toe game
 
 ## Contents
-* GameEngine to control the game located in [tictactoe/](tictactoe). Has heuristics for solving the game via `-[solveForPiece:position:]`.
-* GameEngineBoard to manage the Tic-Tac-Toe model located in [tictactoe/](tictactoe). Has helpers to compute details on the ways to win, called "board vector attributes".
-* Unit tests for most of the board and engine in [tictactoeTests/tictactoeTests.m](tictactoeTests/tictactoeTests.m)
+
+* (_Best place to start!_) Unit tests illustrating the board and engine operation are located in [tictactoeTests/tictactoeTests.m](tictactoeTests/tictactoeTests.m)
+* GameEngine to control the game is located in [tictactoe/](tictactoe). Has heuristics for solving the game via `-[solveForPiece:position:]`.
+* GameEngineBoard to manage the Tic-Tac-Toe model is located in [tictactoe/](tictactoe). Has helpers to compute details for contemplating the ways to win, called "board vector attributes".
