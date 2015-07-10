@@ -8,54 +8,6 @@
 
 #import "GameEngine.h"
 
-@implementation GameEngineBoard
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        _piecesArr = [NSMutableArray arrayWithCapacity:kGEBoardSize];
-        for (int arraySize = 0; arraySize <= kGEBoardSize; arraySize++) {
-            [_piecesArr addObject:[NSNumber numberWithInteger:GameEnginePieceNone]];
-        }
-        
-        _pieces = malloc(sizeof(GameEnginePiece) * kGEBoardSize);
-        for (int arraySize = 0; arraySize <= kGEBoardSize; arraySize++) {
-            _pieces[arraySize] = GameEnginePieceNone;
-        }
-    }
-    return self;
-}
-
-- (void)dealloc {
-    free(_pieces);
-    _pieces = 0ULL;
-}
-
-- (GameEnginePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column {
-    NSUInteger arrayIndex = row * kGEBoardDimension + column;
-    if (arrayIndex >= kGEBoardSize) {
-        [NSException raise:NSInvalidArgumentException format:@"Row %lu column %lu is out of bounds", (unsigned long)row, (unsigned long)column];
-        return GameEnginePieceNone;
-    }
-    GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
-    return piece;
-}
-
-@end
-
-// ------
-
-@implementation GameEngineBoardVectorAttributes
-- (instancetype)initWithVectorId:(NSUInteger)vectorId {
-    self = [super init];
-    if (self) {
-        _vectorId = vectorId;
-    }
-    return self;
-}
-@end
-
-// ------
-
 @implementation GameEngine
 
 - (instancetype)init {
@@ -67,91 +19,158 @@
     return self;
 }
 
-
-- (GameEnginePosition)solveForPiece:(GameEnginePiece)piece {
-    GameEnginePosition position = {0};
-    
-    // get summations
-    
-    // pick the first summation with a free spot
-    
-    
-    
-    return position;
+- (GameEnginePiece)pieceForPosition:(GameEnginePosition)position {
+    return [[self board] pieceAtRow:position.row column:position.column];
 }
 
-- (NSArray*)boardVectorAttributes {
-    // TODO optimize reallocation
-    // TODO remove redundancy
-    // TODO optimize over-setting isPlayable
+- (void)setPosition:(GameEnginePosition)position withPiece:(GameEnginePiece)piece {
+    GameEnginePiece oldPiece = [[self board] pieceAtRow:position.row column:position.column];
     
-    NSMutableArray *attributes = [NSMutableArray arrayWithCapacity:kGEBoardVectorCount];
-    GameEngineBoardVectorAttributes *attribute;
-    NSUInteger vectorId = 0;
-    
-    // Walk across the columns of each row
-    for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithVectorId:vectorId++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
-        
-        for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-            GameEnginePiece piece = [self board].pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GameEnginePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-
-        attribute.vectorScore = score;
+    if (oldPiece != GameEnginePieceNone) {
+        [NSException raise:NSInternalInconsistencyException format:@"Cannot set piece over existing piece"];
+        return;
     }
     
-    // Walk across the rows of each column
-    for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithVectorId:vectorId++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
-        
-        for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-            GameEnginePiece piece = [self board].pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GameEnginePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-        
-        attribute.vectorScore = score;
+    if (_status == GameEngineStatusComplete) {
+        [NSException raise:NSInternalInconsistencyException format:@"Cannot set piece when game is complete"];
+        return;
     }
     
-    // Walk across each diagonal, starting at either top-left or bottom-left
-    for (NSUInteger diagonal = 0; diagonal < 2; diagonal++) {
-        attribute = [[GameEngineBoardVectorAttributes alloc] initWithVectorId:vectorId++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
-
-        // Presume two diagonals.
-        // TRICKY: Using signed NSInteger for row,column and negative terminal index.
-        const NSUInteger rowColumnStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
-        const NSInteger rowColumnEnd = (diagonal == 0 ? kGEBoardDimension : -1);
-        const NSInteger rowColumnIncr = (diagonal == 0 ? 1 : -1);
-        
-        // Walk diagonals keeping indices the same: row == column
-        for (NSInteger row = rowColumnStart, column = row; row != rowColumnEnd; row += rowColumnIncr, column = row) {
-            GameEnginePiece piece = [self board].pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GameEnginePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-
-        attribute.vectorScore = score;
-    }
+    [[self board] setPiece:piece atRow:position.row column:position.column];
     
-    return attributes;
+    // Update status
+    
+    NSArray *vectorAttributes = [[self board] vectorAttributes];
+    
+    for (GameEngineBoardVectorAttributes *attribute in vectorAttributes) {
+        if (attribute.score == kGEBoardDimension) {
+            _status = GameEngineStatusComplete;
+            _winningVectorIdentifier = attribute.identifier;
+            break; // terminal finding
+        } else if (attribute.isPlayable == NO) {
+            _status = GameEngineStatusInProgress;
+        }
+    }
 }
 
+#pragma mark - Solver
+
+// My Tic-Tac-Toe algorithm has two phases.
+// It breaks down the board into eight "success vectors" and defensively
+// chooses the vector with the highest need for competitive attention.
+// Then it determines if it would be a safe move to continue offensively
+// building up a vector primarily made up of its own pieces.
+//
+// Vectors are the rows, columns, and diagonals of the board.
+// Each vector has a score which is the weight, positive or negative, of
+// the cumulative efforts of player one or player two, respectively.
+// Vectors have a convenience field "isPlayable" to help the algorithm skip
+// consideration of unplayable solutions quickly.
+//
+// Vector identifiers for a 3x3 tictactoe board. E.g. 4 is the middle column,
+// and 7 is the diagonal from bottom-left to top-right.
+//   6 3 4 5
+//   0 ~ ~ ~
+//   1 ~ ~ ~
+//   2 ~ ~ ~
+//   7
+
+- (NSArray*)orderByTacticalWorthAscending:(NSArray*)attributes forPiece:(GameEnginePiece)piece {
+    NSAssert(GameEnginePiecePlayerTwo < 0, @"My ordering logic assumes player two contributes negatively to the score, and player one positively");
+    
+    // Defensive
+    
+    NSArray *sortedAttributes = [attributes sortedArrayUsingComparator:^(GameEngineBoardVectorAttributes *attribute1, GameEngineBoardVectorAttributes *attribute2) {
+        NSComparisonResult result = NSOrderedSame;
+        
+        // Consider score
+        if (attribute1.score > attribute2.score) {
+            result = NSOrderedDescending;
+        }
+        
+        if (attribute1.score < attribute2.score) {
+            result = NSOrderedAscending;
+        }
+        
+        // Consider which piece we're ordering for - flip order if needed
+        if (result != NSOrderedSame && piece == GameEnginePiecePlayerOne) {
+            if (result == NSOrderedAscending) {
+                result = NSOrderedDescending;
+            } else {
+                result = NSOrderedAscending;
+            }
+        }
+        
+        // Consider playability. Suppress unplayable attributes.
+        if (attribute1.isPlayable == NO && attribute2.isPlayable == YES) {
+            result = NSOrderedAscending;
+        }
+        if (attribute1.isPlayable == YES && attribute2.isPlayable == NO) {
+            result = NSOrderedDescending;
+        }
+        
+        // Ensure determinism
+        if (result == NSOrderedSame) {
+            if (attribute1.identifier > attribute2.identifier) {
+                result = NSOrderedDescending;
+            } else {
+                result = NSOrderedAscending;
+            }
+        }
+        
+        return result;
+    }];
+    
+    // Offensive heuristic
+    
+    // If the opponent is not about to win, or if I am about to win, then order based upon the vector most likely to win
+    NSUInteger index1 = 0, index2 = 0;
+    NSInteger opponentHighScore = ABS(((GameEngineBoardVectorAttributes*)[sortedAttributes lastObject]).score);
+    NSInteger myHighScore = 0;
+    
+    for (NSUInteger index = 0; index < sortedAttributes.count; index++) {
+        GameEngineBoardVectorAttributes *attribute = [sortedAttributes objectAtIndex:index];
+        if (attribute.isPlayable) {
+            myHighScore = attribute.score;
+            index1 = index;
+            index2 = kGEBoardVectorCount-1; // serves as a flag
+            break;
+        }
+    }
+    
+    if (opponentHighScore < kGEBoardDimension-1 || myHighScore == kGEBoardDimension-1) {
+        if (index1 != index2) {
+            NSMutableArray *mutableSortedAttributes = [sortedAttributes mutableCopy];
+            id obj = [mutableSortedAttributes objectAtIndex:index1];
+            [mutableSortedAttributes removeObjectAtIndex:index1];
+            [mutableSortedAttributes addObject:obj];
+            sortedAttributes = mutableSortedAttributes;
+        }
+    }
+    
+    return sortedAttributes;
+}
+
+- (BOOL)solveForPiece:(GameEnginePiece)piece position:(GameEnginePosition*)position {
+    BOOL found = NO;
+    
+    if (position == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"position must not be nil"];
+    } else {
+        // get attribute records
+        NSArray *attributes = [[self board] vectorAttributes];
+        
+        // sort for score playability
+        NSArray *sortedAttributes = [self orderByTacticalWorthAscending:attributes forPiece:piece];
+        
+        // return the highest tactical value record, if any
+        GameEngineBoardVectorAttributes *highestValueAttribute = [sortedAttributes lastObject];
+        if (highestValueAttribute.isPlayable) {
+            found = [[self board] firstPlayablePositionForVectorIdentifier:highestValueAttribute.identifier position:position];
+        }
+    }
+    
+    return found;
+}
 
 @end
