@@ -7,9 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "GameBoardView.h"
 
 @interface ViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UIButton *restartButton;
+@property (weak, nonatomic) IBOutlet UITextView *instructionsText;
+@property (weak, nonatomic) IBOutlet UITextField *statusText;
+@property (weak, nonatomic) IBOutlet GameBoardView *gameBoardView;
 
 @end
 

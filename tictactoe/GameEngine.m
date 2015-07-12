@@ -11,12 +11,20 @@
 @implementation GameEngine
 
 - (instancetype)init {
+    // FIXME remove magic from 'winning vector' magic number -1
     self = [super init];
     if (self) {
         _status = GameEngineStatusClear;
         _board = [[GameBoard alloc] init];
+        _winningVectorIdentifier = 0;
+        _winner = GameEnginePieceNone;
     }
     return self;
+}
+
+- (NSString*)description {
+    return [NSString stringWithFormat:@"<%@ = %p; %@ = %@; %@ = %p; %@ = %@; %@ = %@>", [self class], self,
+            @"status", @(_status), @"board", _board, @"winningVectorIdentifier", @(_winningVectorIdentifier), @"winner", @(_winner)];
 }
 
 - (GameEnginePiece)pieceForPosition:(GameEnginePosition)position {
@@ -41,15 +49,29 @@
     // Update status
     
     NSArray *vectorAttributes = [[self board] vectorAttributes];
+    BOOL isPlayable = NO;
     
     for (GameBoardVectorAttributes *attribute in vectorAttributes) {
-        if (attribute.score == kGEBoardDimension) {
+        // Check if there are any pieces still playable
+        if (attribute.isPlayable) {
+            isPlayable = YES;
+        }
+        
+        // Check if either player reached the winning score
+        if (ABS(attribute.score) == kGEBoardDimension) {
             _status = GameEngineStatusComplete;
             _winningVectorIdentifier = attribute.identifier;
-            break; // terminal finding
+            _winner = signbit(attribute.score) ? GameEnginePiecePlayerTwo : GameEnginePiecePlayerOne;
+            break; // is a terminal finding
         } else if (attribute.isPlayable == NO) {
+            // Check if the game may be in progress: having some pieces in play, and some not
             _status = GameEngineStatusInProgress;
         }
+    }
+    
+    // If absolutely no pieces are playable then the game is over, a draw
+    if (isPlayable == NO) {
+        _status = GameEngineStatusComplete;
     }
 }
 
@@ -93,6 +115,7 @@
         }
         
         // Consider which piece we're ordering for - flip order if needed
+        // ASSUME player one's score is positive (+)
         if (result != NSOrderedSame && piece == GameEnginePiecePlayerOne) {
             if (result == NSOrderedAscending) {
                 result = NSOrderedDescending;
@@ -123,22 +146,23 @@
     
     // Offensive heuristic
     
-    // If the opponent is not about to win, or if I am about to win, then order based upon the vector most likely to win
     NSUInteger index1 = 0, index2 = 0;
-    NSInteger opponentHighScore = ABS(((GameBoardVectorAttributes*)[sortedAttributes lastObject]).score);
     NSInteger myHighScore = 0;
     
+    // Find my high score, the first playable vector's score.
+    // To be clear, we ignore non-playable vectors because it's no longer possible to use them.
     for (NSUInteger index = 0; index < sortedAttributes.count; index++) {
         GameBoardVectorAttributes *attribute = [sortedAttributes objectAtIndex:index];
         if (attribute.isPlayable) {
             myHighScore = attribute.score;
             index1 = index;
             index2 = kGEBoardVectorCount-1; // serves as a flag
-            break;
+            break; // first only
         }
     }
     
-    if (opponentHighScore < kGEBoardDimension-1 || myHighScore == kGEBoardDimension-1) {
+    // Heuristic: if I'm about to win, then quit being defensive and go FTW!
+    if (ABS(myHighScore) == kGEBoardDimension-1) {
         if (index1 != index2) {
             NSMutableArray *mutableSortedAttributes = [sortedAttributes mutableCopy];
             id obj = [mutableSortedAttributes objectAtIndex:index1];

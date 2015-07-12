@@ -17,6 +17,7 @@ static const NSUInteger kGEBoardVectorCount = 2 * kGEBoardDimension + 2; // rows
 
 // Piece - what piece is played on the board, or none
 // Integer value used to score incrementally. Positive is player one. Negative, player two.
+// TRICKY: Do not change values. App depends upon these integer values for scoring. 
 typedef NS_ENUM(NSInteger, GameEnginePiece) {
     GameEnginePieceNone = 0,
     GameEnginePiecePlayerOne = 1,

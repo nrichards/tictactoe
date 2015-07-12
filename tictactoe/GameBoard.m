@@ -21,8 +21,8 @@
 }
 
 - (NSString*)description {
-    return [NSString stringWithFormat:@"<%@: %p, %@: %@, %@: %@, %@: %@>", [self class], self,
-            @"identifier", @(self.identifier), @"score", @(self.score), @"isPlayable",@(self.isPlayable)];
+    return [NSString stringWithFormat:@"<%@ = %p; %@ = %@; %@ = %@; %@ = %@>", [self class], self,
+            @"identifier", @(_identifier), @"score", @(_score), @"isPlayable",@(_isPlayable)];
 }
 
 @end
@@ -46,6 +46,29 @@
 - (void)dealloc {
     free(_pieces);
     _pieces = 0ULL;
+}
+
+- (NSString*)description {
+    NSMutableString *pieces = [NSMutableString stringWithString:@""];
+    
+    for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
+        if (pieces.length > 0) {
+            [pieces appendString:@", "];
+        }
+        [pieces appendString:@"["];
+        for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
+            NSString *comma;
+            if (column != kGEBoardDimension - 1) {
+                comma = @", ";
+            } else {
+                comma = @"";
+            }
+            [pieces appendFormat:@"%d%@", _pieces[row * kGEBoardDimension + column], comma];
+        }
+        [pieces appendString:@"]"];
+    }
+    
+    return [NSString stringWithFormat:@"<%@ = %p; pieces = [%@]>", [self class], self, pieces];
 }
 
 - (GameEnginePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column {
@@ -82,8 +105,7 @@
     // Walk across the columns of each row
     for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
         attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
+        NSInteger score = 0;
         
         for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
             GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
@@ -95,13 +117,13 @@
         }
         
         attribute.score = score;
+        [attributes addObject:attribute];
     }
     
     // Walk across the rows of each column
     for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
         attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
+        NSInteger score = 0;
         
         for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
             GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
@@ -113,22 +135,20 @@
         }
         
         attribute.score = score;
+        [attributes addObject:attribute];
     }
     
     // Walk across each diagonal, starting at either top-left or bottom-left
     for (NSUInteger diagonal = 0; diagonal < 2; diagonal++) {
         attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        [attributes addObject:attribute];
-        NSUInteger score = 0;
-        
-        // Presume two diagonals.
-        // TRICKY: Using signed NSInteger for row,column and negative terminal index.
-        const NSUInteger rowColumnStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
-        const NSInteger rowColumnEnd = (diagonal == 0 ? kGEBoardDimension : -1);
-        const NSInteger rowColumnIncr = (diagonal == 0 ? 1 : -1);
-        
-        // Walk diagonals keeping indices the same: row == column
-        for (NSInteger row = rowColumnStart, column = row; row != rowColumnEnd; row += rowColumnIncr, column = row) {
+        NSInteger score = 0;
+
+        // To reduce code duplication, consolidate the calculation code in one loop, and extract the
+        // code that changes based upon the 'diagonal' parameter, here.
+        const NSUInteger rowStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
+        const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
+
+        for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
             GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
             score += piece;
             
@@ -138,6 +158,7 @@
         }
         
         attribute.score = score;
+        [attributes addObject:attribute];
     }
     
     return attributes;
@@ -180,13 +201,13 @@
         } else {
             // diagonal-wise
             NSUInteger diagonal = (identifier == kGEBoardVectorCount-2) ? 0 : 1;
-        
-            const NSUInteger rowColumnStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
-            const NSInteger rowColumnEnd = (diagonal == 0 ? kGEBoardDimension : -1);
-            const NSInteger rowColumnIncr = (diagonal == 0 ? 1 : -1);
+
+            // To reduce code duplication, consolidate the calculation code in one loop, and extract the
+            // code that changes based upon the 'diagonal' parameter, here.
+            const NSUInteger rowStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
+            const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
             
-            // Walk diagonals keeping indices the same: row == column
-            for (NSInteger row = rowColumnStart, column = row; !found && row != rowColumnEnd; row += rowColumnIncr, column = row) {
+            for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
                 GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
                 
                 if (piece == GameEnginePieceNone) {
