@@ -48,7 +48,7 @@
     XCTAssertThrows([[gameEngine board] setPiece:GameEnginePiecePlayerTwo atRow:9 column:9]);
 }
 
-- (void)testGame_solve {
+- (void)DISABLED_testGame_solve {
     GameEngine* gameEngine = [[GameEngine alloc] init];
 
     // CPU is player one, 'x'
@@ -226,85 +226,212 @@
     XCTAssertEqual(((GameBoardVectorAttributes*)[vectorAttributes objectAtIndex:identifier]).score, 1);
 }
 
-- (void)testBoardVectorAttributes_orderByTacticalWorthAscending {
-    GameEngine* gameEngine = [[GameEngine alloc] init];
+#pragma mark - Recursive solver
+
+- (void)testGameEngine_availablePositionsForBoard {
+    // Generate positions available to be moved for a given board
     
-    // x,o,x
-    // ~,o,x <== notice
-    // ~,~,~
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:0 column:0];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerTwo atRow:0 column:1];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:0 column:2];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerTwo atRow:1 column:1];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:1 column:2];
-    
-    NSArray* vectorAttributes = [[gameEngine board] vectorAttributes];
-    
-    // Ensure the ordering is appropriate to the given piece, and playability is considered
-    
-    NSArray *orderedAttributesOne = [gameEngine orderByTacticalWorthAscending:vectorAttributes forPiece:GameEnginePiecePlayerOne];
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne firstObject]).isPlayable, NO);
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne objectAtIndex:1]).score, 1);
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesOne lastObject]).score, 2);
-    
-    NSArray *orderedAttributesTwo = [gameEngine orderByTacticalWorthAscending:vectorAttributes forPiece:GameEnginePiecePlayerTwo];
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo firstObject]).isPlayable, NO);
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo objectAtIndex:1]).score, -2);
-    XCTAssertEqual(((GameBoardVectorAttributes*)[orderedAttributesTwo lastObject]).score, 2);
 }
 
-- (void)testBoard_playablePosition {
-    GameEngine* gameEngine = [[GameEngine alloc] init];
-    
-    // x,o,x
-    // ~,o,x
-    // ~,~,~
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:0 column:0];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerTwo atRow:0 column:1];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:0 column:2];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerTwo atRow:1 column:1];
-    [[gameEngine board] setPiece:GameEnginePiecePlayerOne atRow:1 column:2];
+#pragma mark - Board generator
 
-    GameEnginePosition position0 = {0};
-    BOOL found0 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:0 position:&position0];
-    XCTAssertEqual(found0, NO);
+- (void)testGameEngine_mutateBoardForMove {
+    // Generate board for a given hypothetical move
     
-    GameEnginePosition position1 = {0};
-    BOOL found1 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:1 position:&position1];
-    XCTAssertEqual(found1, YES);
-    XCTAssertEqual(position1.row, 1);
-    XCTAssertEqual(position1.column, 0);
-    
-    // skipping position2
-    
-    GameEnginePosition position3 = {0};
-    BOOL found3 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:3 position:&position3];
-    XCTAssertEqual(found3, YES);
-    XCTAssertEqual(position3.row, 1);
-    XCTAssertEqual(position3.column, 0);
-    
-    // skipping position4
+    GameEngine *gameEngine = [[GameEngine alloc] init];
 
-    GameEnginePosition position5 = {0};
-    BOOL found5 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:5 position:&position5];
-    XCTAssertEqual(found5, YES);
-    XCTAssertEqual(position5.row, 2);
-    XCTAssertEqual(position5.column, 2);
+    GameEnginePiece piecesStackArr[] = {
+        +0, 1,-1,
+        -1, 1, 1,
+         0, 0,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
     
-    // diagonal
-    GameEnginePosition position6 = {0};
-    BOOL found6 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:6 position:&position6];
-    XCTAssertEqual(found6, YES);
-    XCTAssertEqual(position6.row, 2);
-    XCTAssertEqual(position6.column, 2);
+    [gameEngine.board setPieces:pieces];
 
-    GameEnginePosition position7 = {0};
-    BOOL found7 = [[gameEngine board] firstPlayablePositionForVectorIdentifier:7 position:&position7];
-    XCTAssertEqual(found7, YES);
-    XCTAssertEqual(position7.row, 2);
-    XCTAssertEqual(position7.column, 2);
-    
-    
+    GameEnginePosition position = {.row=2, .column=1};
+    GameEnginePiece *mutant = [gameEngine.board mallocBoardWithPiece:GameEnginePiecePlayerOne atPosition:position];
+    XCTAssertEqual(mutant[position.row * kGEBoardDimension + position.column], GameEnginePiecePlayerOne);
+    free(mutant);
 }
+
+#pragma mark - Scoring: base/error/in-progress cases, then win by row, column, diagonal
+
+- (void)testGameEngine_scoreForGame0 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1, 1, 1,
+        +1, 1, 1,
+        +1, 1, 1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePieceNone); // error case
+}
+
+- (void)testGameEngine_scoreForGame1 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +0, 0, 0,
+        +0, 0, 0,
+        +0, 0, 0};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePieceNone); // base case
+}
+
+- (void)testGameEngine_scoreForGame1_1 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1, 0,-1,
+        +0, 0, 0,
+        -1, 0, 1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePieceNone); // in progress case
+}
+
+- (void)testGameEngine_scoreForGame2_0 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1, 1, 1,
+        -1,-1, 1,
+        +1, 1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerOne);
+}
+
+- (void)testGameEngine_scoreForGame2_1 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1,-1, 1,
+        +1, 1, 1,
+        -1, 1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerOne);
+}
+
+- (void)testGameEngine_scoreForGame2_2 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1,-1,-1,
+        -1,-1, 1,
+        +1, 1, 1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerOne);
+}
+
+- (void)testGameEngine_scoreForGame3_0 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        -1, 1,-1,
+        -1, 1, 1,
+        -1,-1, 1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerTwo);
+}
+
+- (void)testGameEngine_scoreForGame3_1 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1,-1, 1,
+        -1,-1, 1,
+        +1,-1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerTwo);
+}
+
+- (void)testGameEngine_scoreForGame3_2 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1,-1,-1,
+        -1, 0,-1,
+        +1,-1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerTwo);
+}
+
+- (void)testGameEngine_scoreForGame4_0 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        +1,-1, 1,
+        -1, 1,-1,
+        +1,-1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerOne);
+}
+
+- (void)testGameEngine_scoreForGame4_1 {
+    GameEngine *gameEngine = [[GameEngine alloc] init];
+    
+    GameEnginePiece piecesStackArr[] = {
+        -1,-1, 1,
+        -1, 1,-1,
+        +1,-1,-1};
+    GameEnginePiece *pieces = malloc(sizeof(piecesStackArr));
+    memcpy(pieces, &piecesStackArr, sizeof(piecesStackArr));
+    
+    [gameEngine.board setPieces:pieces];
+    
+    GameEnginePiece winner = [gameEngine.board winner];
+    XCTAssertEqual(winner, GameEnginePiecePlayerOne);
+}
+
 
 @end

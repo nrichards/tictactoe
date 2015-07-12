@@ -46,15 +46,18 @@ typedef struct GameEnginePosition GameEnginePosition;
 
 #pragma mark - GameBoard
 
-// Board - the backing data structure and helpers
+// Board - the backing data structure and related helpers
 @interface GameBoard : NSObject
 
-@property(nonatomic) GameEnginePiece *pieces; // Standard C array
+@property(nonatomic) GameEnginePiece *pieces; // Standard C array. When setting: use with extreme caution, transfers 'malloc'd memory ownership, no side effects.
 
 - (GameEnginePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column;
 - (void)setPiece:(GameEnginePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column;
 
 - (NSArray*)vectorAttributes; // compute scores and more for each potential game-success vector
 - (BOOL)firstPlayablePositionForVectorIdentifier:(NSUInteger)identifier position:(GameEnginePosition*)position; // Choose the first free position to play. Return NO if no free positions, YES otherwise.
+
+- (GameEnginePiece)winner; // Calculate whether the board overall wins for player one, two, or is a draw
+- (GameEnginePiece*)mallocBoardWithPiece:(GameEnginePiece)piece atPosition:(GameEnginePosition)position; // Emit a hypothetical board based upon the current board, with a specified mutation, malloc'd
 
 @end

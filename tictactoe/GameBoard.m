@@ -92,6 +92,11 @@
     _pieces[row * kGEBoardDimension + column] = piece;
 }
 
+- (void)setPieces:(GameEnginePiece *)pieces {
+    free(_pieces);
+    _pieces = pieces; // Take ownership.
+}
+
 // Gather statistics on the status of the board
 - (NSArray*)vectorAttributes {
     // FIXME optimize reallocation
@@ -221,5 +226,31 @@
     
     return found;
 }
+
+- (GameEnginePiece)winner {
+    NSArray *attributes = [self vectorAttributes];
+    GameEnginePiece winningPiece = GameEnginePieceNone;
+    
+    for (GameBoardVectorAttributes *attribute in attributes) {
+        if (ABS(attribute.score) == kGEBoardDimension) {
+            if (winningPiece != GameEnginePieceNone) {
+                // Error - corrupt board with more than one winner
+                return GameEnginePieceNone;
+            }
+            
+            winningPiece = signbit(attribute.score) ? GameEnginePiecePlayerTwo : GameEnginePiecePlayerOne; // TRICKY
+        }
+    }
+    
+    return winningPiece;
+}
+
+- (GameEnginePiece*)mallocBoardWithPiece:(GameEnginePiece)piece atPosition:(GameEnginePosition)position {
+    GameEnginePiece *mutant = malloc(sizeof(GameEnginePiece) * kGEBoardSize);
+    memcpy(mutant, _pieces, sizeof(GameEnginePiece) * kGEBoardSize);
+    mutant[position.row * kGEBoardDimension + position.column] = piece;
+    return mutant;
+}
+
 
 @end
