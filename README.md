@@ -4,14 +4,14 @@ Mobile Tic-Tac-Toe game
 ## Contents
 
 * (_Best place to start!_) Unit tests illustrating the board and engine operation are located in [tictactoeTests/tictactoeTests.m](tictactoeTests/tictactoeTests.m)
-* GameEngine to control the game is located in [tictactoe/](tictactoe). Has heuristics for solving the game via `-[solveForPiece:position:]`.
-* GameBoard to manage the Tic-Tac-Toe model is located in [tictactoe/](tictactoe). Has helpers to compute details for contemplating the ways to win, called "board vector attributes".
+* To control the game use GameEngine located in [tictactoe/](tictactoe)
+* To manage the Tic-Tac-Toe model use GameBoard also located in [tictactoe/](tictactoe)
 
 ## Credits
 
 * https://github.com/zmonteca/UIButton-PLColor - for the two-state colored button
 * Minimax algorithm insights:
-** http://neverstopbuilding.com/minimax
-** https://en.wikipedia.org/wiki/Minimax#Pseudocode
-** https://github.com/mattrajca/TTT
-** https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html
+ * http://neverstopbuilding.com/minimax
+ * https://en.wikipedia.org/wiki/Minimax#Pseudocode
+ * https://github.com/mattrajca/TTT
+ * https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html
