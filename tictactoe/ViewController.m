@@ -30,7 +30,7 @@ static const CGFloat kTTTCPUThinkTime = 0.3f; // Artificial delay to make it fee
     [super viewDidLoad];
     
     _instructionsText.text = @"Welcome to\nTic-Tac-Toe!";
-    _statusText.text = @"";
+    _statusText.text = @"Start a new game and choose an initial player";
     
     _gameBoardView.delegate = self;
     
