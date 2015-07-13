@@ -15,9 +15,9 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
 
 @interface ViewController ()
 
-@property (nonatomic,assign) GameEnginePiece humanPiece;
-@property (nonatomic,assign) GameEnginePiece cpuPiece;
-@property (nonatomic) GameEnginePiece turn;
+@property (nonatomic,assign) GamePiece humanPiece;
+@property (nonatomic,assign) GamePiece cpuPiece;
+@property (nonatomic) GamePiece turn;
 @property (nonatomic,retain) GameEngine *gameEngine;
 
 @end
@@ -34,8 +34,8 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 #if DEVELOPMENT_SKIP_CHOICE
-        _humanPiece = GameEnginePiecePlayerOne;
-        _cpuPiece = GameEnginePiecePlayerTwo;
+        _humanPiece = GamePiecePlayerOne;
+        _cpuPiece = GamePiecePlayerTwo;
         _turn = _humanPiece;
         [self startGame];
 #else
@@ -59,16 +59,16 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
     UIAlertAction *humanFirstAction = [UIAlertAction actionWithTitle:@"Human First" style:UIAlertActionStyleDefault
                                                              handler:^(UIAlertAction *action) {
                                                                  NSLog(@"Human First");
-                                                                 _humanPiece = GameEnginePiecePlayerOne;
-                                                                 _cpuPiece = GameEnginePiecePlayerTwo;
+                                                                 _humanPiece = GamePiecePlayerOne;
+                                                                 _cpuPiece = GamePiecePlayerTwo;
                                                                  _turn = _humanPiece;
                                                                  [self startGame];
                                                              }];
     UIAlertAction *cpuFirstAction = [UIAlertAction actionWithTitle:@"CPU First" style:UIAlertActionStyleDefault
                                                              handler:^(UIAlertAction *action) {
                                                                  NSLog(@"CPU First");
-                                                                 _humanPiece = GameEnginePiecePlayerTwo;
-                                                                 _cpuPiece = GameEnginePiecePlayerOne;
+                                                                 _humanPiece = GamePiecePlayerTwo;
+                                                                 _cpuPiece = GamePiecePlayerOne;
                                                                  _turn = _cpuPiece;
                                                                  [self startGame];
                                                              }];
@@ -158,7 +158,7 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
     [_gameBoardView setPiece:_humanPiece forIndex:boardIndex];
 
     // Update the model
-    GameEnginePosition position;
+    GamePosition position;
     position.row = boardIndex / kGEBoardDimension;
     position.column = boardIndex % kGEBoardDimension;
     [_gameEngine setPosition:position withPiece:_humanPiece];
@@ -170,7 +170,7 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
 
 - (void)cpuMove {
     // Solve for the next move
-    GameEnginePosition position = {0};
+    GamePosition position = {0};
     BOOL solveResult = [_gameEngine solveForPiece:_cpuPiece position:&position];
     
     if (solveResult == NO) {

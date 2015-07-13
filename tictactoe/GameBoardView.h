@@ -18,7 +18,7 @@
 
 - (void)showBoard; // Display cross-hatch and input buttons. May be called repeatedly, clears prior contents.
 
-- (void)setPiece:(GameEnginePiece)piece forIndex:(NSInteger)index;
+- (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index;
 
 - (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index; // Control piece's userInteraction
 - (void)highlightVectorIdentifier:(NSUInteger)vectorIdentifier; // Illustrates the winner

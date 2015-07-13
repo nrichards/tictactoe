@@ -28,16 +28,16 @@ typedef NS_ENUM(NSUInteger, GameEngineStatus) {
 
 @property(nonatomic,readonly) GameEngineStatus status;
 @property(nonatomic,readonly) NSUInteger winningVectorIdentifier;
-@property(nonatomic,readonly) GameEnginePiece winner;
+@property(nonatomic,readonly) GamePiece winner;
 @property(nonatomic,retain) GameBoard *board;
 
 #pragma mark - Pieces and places
 
-- (GameEnginePiece)pieceForPosition:(GameEnginePosition)position;
-- (void)setPosition:(GameEnginePosition)position withPiece:(GameEnginePiece)piece; // Capture human moves
+- (GamePiece)pieceForPosition:(GamePosition)position;
+- (void)setPosition:(GamePosition)position withPiece:(GamePiece)piece; // Capture human moves
 
 #pragma mark - Solver - a Tic-Tac-Toe algorithm
 
-- (BOOL)solveForPiece:(GameEnginePiece)piece position:(GameEnginePosition*)position; // find a desirous available position, return YES setting 'position' if successful, NO otherwise. exhaustive search.
+- (BOOL)solveForPiece:(GamePiece)piece position:(GamePosition*)position; // find a desirous available position, return YES setting 'position' if successful, NO otherwise. exhaustive search.
 
 @end

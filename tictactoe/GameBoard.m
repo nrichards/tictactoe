@@ -34,10 +34,10 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _pieces = malloc(sizeof(GameEnginePiece) * kGEBoardSize); // freed in dealloc
+        _pieces = malloc(sizeof(GamePiece) * kGEBoardSize); // freed in dealloc
         
         for (int arraySize = 0; arraySize <= kGEBoardSize; arraySize++) {
-            _pieces[arraySize] = GameEnginePieceNone;
+            _pieces[arraySize] = GamePieceNone;
         }
     }
     return self;
@@ -47,8 +47,8 @@
     GameBoard *newBoard = [[self class] allocWithZone:zone];
     if (_pieces) {
         // FIXME duplicate code
-        newBoard->_pieces = malloc(sizeof(GameEnginePiece) * kGEBoardSize);
-        memcpy(newBoard->_pieces, _pieces, sizeof(GameEnginePiece) * kGEBoardSize);
+        newBoard->_pieces = malloc(sizeof(GamePiece) * kGEBoardSize);
+        memcpy(newBoard->_pieces, _pieces, sizeof(GamePiece) * kGEBoardSize);
     } else {
         newBoard->_pieces = nil;
     }
@@ -83,18 +83,18 @@
     return [NSString stringWithFormat:@"<%@ = %p; pieces = [%@]>", [self class], self, pieces];
 }
 
-- (GameEnginePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column {
+- (GamePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column {
     NSUInteger arrayIndex = row * kGEBoardDimension + column;
     if (arrayIndex >= kGEBoardSize) {
         [NSException raise:NSInvalidArgumentException format:@"Row %lu column %lu is out of bounds", (unsigned long)row, (unsigned long)column];
-        return GameEnginePieceNone;
+        return GamePieceNone;
     }
     
-    GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
+    GamePiece piece = _pieces[row * kGEBoardDimension + column];
     return piece;
 }
 
-- (void)setPiece:(GameEnginePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column {
+- (void)setPiece:(GamePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column {
     NSUInteger arrayIndex = row * kGEBoardDimension + column;
     if (arrayIndex >= kGEBoardSize) {
         [NSException raise:NSInvalidArgumentException format:@"Row %lu column %lu is out of bounds", (unsigned long)row, (unsigned long)column];
@@ -104,7 +104,7 @@
     _pieces[row * kGEBoardDimension + column] = piece;
 }
 
-- (void)setPieces:(GameEnginePiece *)pieces {
+- (void)setPieces:(GamePiece *)pieces {
     free(_pieces);
     _pieces = pieces; // Take ownership.
 }
@@ -125,10 +125,10 @@
         NSInteger score = 0;
         
         for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-            GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
+            GamePiece piece = _pieces[row * kGEBoardDimension + column];
             score += piece;
             
-            if (piece == GameEnginePieceNone) {
+            if (piece == GamePieceNone) {
                 attribute.isPlayable = YES;
             }
         }
@@ -143,10 +143,10 @@
         NSInteger score = 0;
         
         for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-            GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
+            GamePiece piece = _pieces[row * kGEBoardDimension + column];
             score += piece;
             
-            if (piece == GameEnginePieceNone) {
+            if (piece == GamePieceNone) {
                 attribute.isPlayable = YES;
             }
         }
@@ -166,10 +166,10 @@
         const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
 
         for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
-            GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
+            GamePiece piece = _pieces[row * kGEBoardDimension + column];
             score += piece;
             
-            if (piece == GameEnginePieceNone) {
+            if (piece == GamePieceNone) {
                 attribute.isPlayable = YES;
             }
         }
@@ -196,24 +196,24 @@
 
 - (BOOL)full {
     for (int i = 0; i < 9; i++) {
-        if (_pieces[i] == GameEnginePieceNone)
+        if (_pieces[i] == GamePieceNone)
             return NO;
     }
     return YES;
 }
 
-- (GameEnginePiece)winner {
+- (GamePiece)winner {
     NSArray *attributes = [self vectorAttributes];
-    GameEnginePiece winningPiece = GameEnginePieceNone;
+    GamePiece winningPiece = GamePieceNone;
     
     for (GameBoardVectorAttributes *attribute in attributes) {
         if (ABS(attribute.score) == kGEBoardDimension) {
-            if (winningPiece != GameEnginePieceNone) {
+            if (winningPiece != GamePieceNone) {
                 // Error - corrupt board with more than one winner
-                return GameEnginePieceNone;
+                return GamePieceNone;
             }
             
-            winningPiece = signbit(attribute.score) ? GameEnginePiecePlayerTwo : GameEnginePiecePlayerOne; // TRICKY
+            winningPiece = signbit(attribute.score) ? GamePiecePlayerTwo : GamePiecePlayerOne; // TRICKY
         }
     }
     

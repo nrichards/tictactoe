@@ -102,7 +102,7 @@ static NSString *kPlayerTwoText = @"O";
     }
 }
 
-- (void)setPiece:(GameEnginePiece)piece forIndex:(NSInteger)index
+- (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index
 {
     if (index < 0 || index + 1 > [self.subviews count]) {
         [NSException raise:NSInvalidArgumentException format:@"invalid index %d", index];
@@ -110,10 +110,10 @@ static NSString *kPlayerTwoText = @"O";
     
     NSString *titleText;
     switch (piece) {
-        case GameEnginePiecePlayerOne:
+        case GamePiecePlayerOne:
             titleText = kPlayerOneText;
             break;
-        case GameEnginePiecePlayerTwo:
+        case GamePiecePlayerTwo:
             titleText = kPlayerTwoText;
             break;
         default:
