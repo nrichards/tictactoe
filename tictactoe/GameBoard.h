@@ -39,13 +39,13 @@ typedef struct GamePosition GamePosition;
 // Board - the backing data structure and related helpers
 @interface GameBoard : NSObject
 
-@property(nonatomic) GamePiece *pieces; // Standard C array. When setting: use with extreme caution, transfers 'malloc'd memory ownership, no side effects.
+@property(nonatomic) GamePiece *pieces; // Game model, a simple array. Free the array before setting; it is malloc'd.
 
-- (GamePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column;
-- (void)setPiece:(GamePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column;
+- (GamePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column; // Get the piece from the given position
+- (void)setPiece:(GamePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column; // Put a piece into the given position
 
-- (BOOL)full; // Is the game board full
-- (GamePiece)winner; // Calculate for which player the board overall wins
+- (GamePiece)winner; // Calculate the winning player if any
+- (BOOL)full; // Is the game board completely populated with pieces, are there no free spaces
 - (BOOL)won; // Has the game been won
 - (BOOL)won:(NSUInteger*)identifier winner:(GamePiece*)piece; // Most win. Initializes in/out pointers to defaults, if not-nil.
 

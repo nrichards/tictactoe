@@ -9,8 +9,8 @@
 #import "ViewController.h"
 #import "GameEngine.h"
 
-#define DEVELOPMENT_SKIP_CHOICE 0
-#define DEBUG_ACTIVITY 0
+#define DEVELOPMENT_SKIP_CHOICE 0 // Skips the alert controller, auto-choosing Human player
+#define DEBUG_ACTIVITY 0 // Logging
 
 static const CGFloat kTTTCPUThinkTime = 0.3f; // Artificial delay to make it feel like something is going on
 
@@ -44,11 +44,6 @@ static const CGFloat kTTTCPUThinkTime = 0.3f; // Artificial delay to make it fee
         [self restartButtonPressed:nil];
 #endif
     });
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - UI handling 

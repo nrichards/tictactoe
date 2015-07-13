@@ -25,7 +25,6 @@ static NSString *kPlayerTwoText = @"O";
 
 @implementation GameBoardView
 
-
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
     if (self) {
@@ -50,8 +49,10 @@ static NSString *kPlayerTwoText = @"O";
     _buttonFramePadding = 2.0f;
 }
 
+// Resets, builds, and displays a game board
 - (void)showBoard {
-    // reset board
+    // reset
+    
     for (UIView *subview in [self subviews]) {
         [subview removeFromSuperview];
     }
@@ -71,7 +72,7 @@ static NSString *kPlayerTwoText = @"O";
             [piece setTitle:[NSString stringWithFormat:@"%d",piece.tag] forState:UIControlStateNormal];
 #endif
             
-            // Layout and look
+            // Layout and design
             CGRect pieceBounds = CGRectMake(0,0, pieceWidth, pieceHeight);
             
             piece.bounds = pieceBounds;
@@ -88,7 +89,7 @@ static NSString *kPlayerTwoText = @"O";
             pieceFrame.origin = CGPointMake(column * pieceWidth, row * pieceHeight);
             piece.frame = pieceFrame;
             
-            // Press event
+            // Wire up press event handling
             [piece addTarget:self action:@selector(piecePressed:) forControlEvents:UIControlEventTouchUpInside];
             
             [self addSubview:piece];
@@ -102,8 +103,7 @@ static NSString *kPlayerTwoText = @"O";
     }
 }
 
-- (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index
-{
+- (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index {
     if (index < 0 || index + 1 > [self.subviews count]) {
         [NSException raise:NSInvalidArgumentException format:@"invalid index %ld", (long)index];
     }

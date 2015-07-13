@@ -20,8 +20,8 @@
 
 - (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index;
 
-- (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index; // Control piece's userInteraction
-- (void)highlightIdentifier:(NSUInteger)vectorIdentifier; // Illustrates the winner
+- (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index; // Control single piece's userInteraction
+- (void)highlightIdentifier:(NSUInteger)vectorIdentifier; // Use to illustrate the winning moves
 
 @end
 

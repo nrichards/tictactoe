@@ -18,8 +18,6 @@ typedef NS_ENUM(NSUInteger, GameEngineStatus) {
     GameEngineStatusComplete,
 };
 
-// ------
-
 #pragma mark - GameEngine
 
 // Engine - has a board, records arbitrary activity, proposes CPU activity based upon Tic-Tac-Toe algorithm

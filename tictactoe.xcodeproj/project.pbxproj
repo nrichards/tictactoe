@@ -31,7 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		011EED421B4DEF70005176C6 /* tictactoe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tictactoe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		011EED421B4DEF70005176C6 /* Tic-Tac-Toe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tic-Tac-Toe.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		011EED461B4DEF70005176C6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		011EED471B4DEF70005176C6 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		011EED491B4DEF70005176C6 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -84,7 +84,7 @@
 		011EED431B4DEF70005176C6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				011EED421B4DEF70005176C6 /* tictactoe.app */,
+				011EED421B4DEF70005176C6 /* Tic-Tac-Toe.app */,
 				011EED5B1B4DEF70005176C6 /* tictactoeTests.xctest */,
 			);
 			name = Products;
@@ -165,7 +165,7 @@
 			);
 			name = tictactoe;
 			productName = tictactoe;
-			productReference = 011EED421B4DEF70005176C6 /* tictactoe.app */;
+			productReference = 011EED421B4DEF70005176C6 /* Tic-Tac-Toe.app */;
 			productType = "com.apple.product-type.application";
 		};
 		011EED5A1B4DEF70005176C6 /* tictactoeTests */ = {
@@ -384,7 +384,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = tictactoe/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Tic-Tac-Toe";
 			};
 			name = Debug;
 		};
@@ -394,7 +394,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = tictactoe/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Tic-Tac-Toe";
 			};
 			name = Release;
 		};

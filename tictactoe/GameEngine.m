@@ -39,6 +39,8 @@
         return;
     }
     
+    // Forward to the model
+    
     [[self board] setPiece:piece atRow:position.row column:position.column];
     
     // Update status
@@ -76,7 +78,7 @@
         NSUInteger bestColumn = 0;
         NSUInteger index = 0;
         
-        // Micro Minimax to get things started
+        // Micro Minimax to extract row, column solution
         for (int row = 0; row < kGEBoardDimension; row++) {
             for (int column = 0; column < kGEBoardDimension; column++, index++) {
                 if (_board.pieces[index] == GamePieceNone) {
