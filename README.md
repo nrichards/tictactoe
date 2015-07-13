@@ -1,5 +1,7 @@
-# tictactoe
+# Tic-Tac-Toe
 Mobile Tic-Tac-Toe game
+
+Video demo: https://youtu.be/ZA5BKhRtnF0
 
 ## Contents
 
