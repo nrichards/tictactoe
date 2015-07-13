@@ -38,7 +38,6 @@ typedef NS_ENUM(NSUInteger, GameEngineStatus) {
 
 #pragma mark - Solver - a Tic-Tac-Toe algorithm
 
-- (NSArray*)orderByTacticalWorthAscending:(NSArray*)attributes forPiece:(GameEnginePiece)piece; // order success vectors to use for winning the game
-- (BOOL)solveForPiece:(GameEnginePiece)piece position:(GameEnginePosition*)position; // find a desirous available position, return NO if none found, YES otherwise
+- (BOOL)solveForPiece:(GameEnginePiece)piece position:(GameEnginePosition*)position; // find a desirous available position, return YES setting 'position' if successful, NO otherwise. exhaustive search.
 
 @end

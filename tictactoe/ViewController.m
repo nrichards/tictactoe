@@ -26,9 +26,6 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    NSLog(@"viewDidLoad");
     
     _instructionsText.text = @"Welcome to\nTic-Tac-Toe!";
     _statusText.text = @"";
@@ -87,7 +84,7 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
 
 - (void)startGame {
     _gameEngine = [[GameEngine alloc] init];
-    [_gameBoardView presentBoard];
+    [_gameBoardView showBoard];
     [self nextMoveAsync];
 }
 
@@ -120,15 +117,22 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
         
         // Update the UI
         NSString *winner;
+        BOOL showVector = NO;
+        
         if (_gameEngine.winner == _cpuPiece) {
             winner = @"CPU";
+            showVector = YES;
         } else if (_gameEngine.winner == _humanPiece) {
             winner = @"Human";
+            showVector = YES;
         } else {
             winner = @"Draw";
         }
+        
         _statusText.text = [NSString stringWithFormat:@"Game over! Winner: %@", winner];
-        [_gameBoardView highlightVectorIdentifier:_gameEngine.winningVectorIdentifier];
+        if (showVector) {
+            [_gameBoardView highlightVectorIdentifier:_gameEngine.winningVectorIdentifier];
+        }
         return;
     }
     

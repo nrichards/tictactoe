@@ -50,7 +50,7 @@ static NSString *kPlayerTwoText = @"O";
     _buttonFramePadding = 2.0f;
 }
 
-- (void)presentBoard {
+- (void)showBoard {
     // reset board
     for (UIView *subview in [self subviews]) {
         [subview removeFromSuperview];

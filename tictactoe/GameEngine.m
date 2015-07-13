@@ -77,124 +77,96 @@
 
 #pragma mark - Solver
 
-// My Tic-Tac-Toe algorithm has two phases.
-// It breaks down the board into eight "success vectors" and defensively
-// chooses the vector with the highest need for competitive attention.
-// Then it determines if it would be a safe move to continue offensively
-// building up a vector primarily made up of its own pieces.
-//
-// Vectors are the rows, columns, and diagonals of the board.
-// Each vector has a score which is the weight, positive or negative, of
-// the cumulative efforts of player one or player two, respectively.
-// Vectors have a convenience field "isPlayable" to help the algorithm skip
-// consideration of unplayable solutions quickly.
-//
-// Vector identifiers for a 3x3 tictactoe board. E.g. 4 is the middle column,
-// and 7 is the diagonal from bottom-left to top-right.
-//   6 3 4 5
-//   0 ~ ~ ~
-//   1 ~ ~ ~
-//   2 ~ ~ ~
-//   7
-
-- (NSArray*)orderByTacticalWorthAscending:(NSArray*)attributes forPiece:(GameEnginePiece)piece {
-    NSAssert(GameEnginePiecePlayerTwo < 0, @"My ordering logic assumes player two contributes negatively to the score, and player one positively");
-    
-    // Defensive
-    
-    NSArray *sortedAttributes = [attributes sortedArrayUsingComparator:^(GameBoardVectorAttributes *attribute1, GameBoardVectorAttributes *attribute2) {
-        NSComparisonResult result = NSOrderedSame;
-        
-        // Consider score
-        if (attribute1.score > attribute2.score) {
-            result = NSOrderedDescending;
-        }
-        
-        if (attribute1.score < attribute2.score) {
-            result = NSOrderedAscending;
-        }
-        
-        // Consider which piece we're ordering for - flip order if needed
-        // ASSUME player one's score is positive (+)
-        if (result != NSOrderedSame && piece == GameEnginePiecePlayerOne) {
-            if (result == NSOrderedAscending) {
-                result = NSOrderedDescending;
-            } else {
-                result = NSOrderedAscending;
-            }
-        }
-        
-        // Consider playability. Suppress unplayable attributes.
-        if (attribute1.isPlayable == NO && attribute2.isPlayable == YES) {
-            result = NSOrderedAscending;
-        }
-        if (attribute1.isPlayable == YES && attribute2.isPlayable == NO) {
-            result = NSOrderedDescending;
-        }
-        
-        // Ensure determinism
-        if (result == NSOrderedSame) {
-            if (attribute1.identifier > attribute2.identifier) {
-                result = NSOrderedDescending;
-            } else {
-                result = NSOrderedAscending;
-            }
-        }
-        
-        return result;
-    }];
-    
-    // Offensive heuristic
-    
-    NSUInteger index1 = 0, index2 = 0;
-    NSInteger myHighScore = 0;
-    
-    // Find my high score, the first playable vector's score.
-    // To be clear, we ignore non-playable vectors because it's no longer possible to use them.
-    for (NSUInteger index = 0; index < sortedAttributes.count; index++) {
-        GameBoardVectorAttributes *attribute = [sortedAttributes objectAtIndex:index];
-        if (attribute.isPlayable) {
-            myHighScore = attribute.score;
-            index1 = index;
-            index2 = kGEBoardVectorCount-1; // serves as a flag
-            break; // first only
-        }
-    }
-    
-    // Heuristic: if I'm about to win, then quit being defensive and go FTW!
-    if (ABS(myHighScore) == kGEBoardDimension-1) {
-        if (index1 != index2) {
-            NSMutableArray *mutableSortedAttributes = [sortedAttributes mutableCopy];
-            id obj = [mutableSortedAttributes objectAtIndex:index1];
-            [mutableSortedAttributes removeObjectAtIndex:index1];
-            [mutableSortedAttributes addObject:obj];
-            sortedAttributes = mutableSortedAttributes;
-        }
-    }
-    
-    return sortedAttributes;
-}
-
 - (BOOL)solveForPiece:(GameEnginePiece)piece position:(GameEnginePosition*)position {
     BOOL found = NO;
     
     if (position == nil) {
         [NSException raise:NSInvalidArgumentException format:@"position must not be nil"];
+    } else if (piece != GameEnginePiecePlayerOne && piece != GameEnginePiecePlayerTwo ) {
+        [NSException raise:NSInvalidArgumentException format:@"piece %d must be either player one or two", piece];
     } else {
-        // get attribute records
-        NSArray *attributes = [[self board] vectorAttributes];
+        // Reference:
+        // - http://neverstopbuilding.com/minimax
+        // - https://en.wikipedia.org/wiki/Minimax#Pseudocode
+        // - https://github.com/mattrajca/TTT
+        // - https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html
         
-        // sort for score playability
-        NSArray *sortedAttributes = [self orderByTacticalWorthAscending:attributes forPiece:piece];
+        GameEnginePiece opposite = piece == GameEnginePiecePlayerOne ? GameEnginePiecePlayerTwo : GameEnginePiecePlayerOne;
+        NSInteger score = opposite;
+        NSUInteger bestRow = 0;
+        NSUInteger bestColumn = 0;
+        NSUInteger index = 0;
         
-        // return the highest tactical value record, if any
-        GameBoardVectorAttributes *highestValueAttribute = [sortedAttributes lastObject];
-        if (highestValueAttribute.isPlayable) {
-            found = [[self board] firstPlayablePositionForVectorIdentifier:highestValueAttribute.identifier position:position];
+        for (int row = 0; row < kGEBoardDimension; row++) {
+            for (int column = 0; column < kGEBoardDimension; column++) {
+                index++;
+                if (_board.pieces[index] == GameEnginePieceNone) {
+                    // Mutate board
+                    _board.pieces[index] = piece;
+                    
+                    // Search board
+                    GameEnginePiece helperScore = [self solveForPieceHelper:_board piece:opposite alpha:GameEnginePiecePlayerTwo beta:GameEnginePiecePlayerOne];
+                    
+                    // Restore board
+                    _board.pieces[index] = GameEnginePieceNone;
+                    
+                    if ((piece == GameEnginePiecePlayerOne && helperScore > score)
+                        || (piece == GameEnginePiecePlayerTwo && helperScore < score)) {
+                        score = helperScore;
+                        bestRow = row;
+                        bestColumn = column;
+                    }
+                }
+            }
         }
+        
+        position->row = bestRow;
+        position->column = bestColumn;
+        
+        found = YES;
     }
     
     return found;
+}
+
+- (GameEnginePiece)solveForPieceHelper:(GameBoard*)board piece:(GameEnginePiece)piece alpha:(NSInteger)alpha beta:(NSInteger)beta {
+    // Minimax with alpha/beta 
+    GameEnginePiece opposite = piece == GameEnginePiecePlayerOne ? GameEnginePiecePlayerTwo : GameEnginePiecePlayerOne;
+
+    if (board.won) {
+        return opposite;
+    } else if (board.full) {
+        return GameEnginePieceNone;
+    }
+    
+    for (NSUInteger index = 0; index < kGEBoardSize; index++) {
+        if (board.pieces[index] == GameEnginePieceNone) {
+            // Mutate board
+            board.pieces[index] = piece;
+            
+            // Search board
+            GameEnginePiece helperScore = [self solveForPieceHelper:board piece:opposite alpha:alpha beta:beta];
+            
+            // Restore board
+            board.pieces[index] = GameEnginePieceNone;
+            
+            if (piece == GameEnginePiecePlayerOne && helperScore > alpha) {
+                alpha = helperScore;
+                
+                if (alpha >= beta) {
+                    return alpha;
+                }
+            } else if (piece == GameEnginePiecePlayerTwo && helperScore < beta) {
+                beta = helperScore;
+                
+                if (alpha >= beta) {
+                    return beta;
+                }
+            }
+        }
+    }
+    
+    return piece == GameEnginePiecePlayerOne ? alpha : beta;
 }
 
 @end

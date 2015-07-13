@@ -16,17 +16,17 @@
 
 @property(nonatomic,assign) id delegate; // GameBoardViewDelegate weak reference
 
-- (void)presentBoard; // Display cross-hatch and input buttons. Resets board if repeatedly called.
+- (void)showBoard; // Display cross-hatch and input buttons. May be called repeatedly, clears prior contents.
+
 - (void)setPiece:(GameEnginePiece)piece forIndex:(NSInteger)index;
+
 - (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index; // Control piece's userInteraction
 - (void)highlightVectorIdentifier:(NSUInteger)vectorIdentifier; // Illustrates the winner
 
 @end
 
 @protocol GameBoardViewDelegate <NSObject>
-@optional
 
-// Called when a button is clicked.
-- (void)gameBoardView:(GameBoardView *)boardView clickedButtonAtIndex:(NSInteger)buttonIndex;
+- (void)gameBoardView:(GameBoardView *)boardView clickedButtonAtIndex:(NSInteger)buttonIndex; // Called when a button is clicked
 
 @end

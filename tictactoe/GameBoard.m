@@ -43,6 +43,18 @@
     return self;
 }
 
+- (instancetype)copyWithZone:(NSZone *)zone {
+    GameBoard *newBoard = [[self class] allocWithZone:zone];
+    if (_pieces) {
+        // FIXME duplicate code
+        newBoard->_pieces = malloc(sizeof(GameEnginePiece) * kGEBoardSize);
+        memcpy(newBoard->_pieces, _pieces, sizeof(GameEnginePiece) * kGEBoardSize);
+    } else {
+        newBoard->_pieces = nil;
+    }
+    return newBoard;
+}
+
 - (void)dealloc {
     free(_pieces);
     _pieces = 0ULL;
@@ -169,62 +181,25 @@
     return attributes;
 }
 
-- (BOOL)firstPlayablePositionForVectorIdentifier:(NSUInteger)identifier position:(GameEnginePosition*)position {
-    // FIXME reduce redundant logic
+- (BOOL)won {
+    NSArray *vectorAttributes = self.vectorAttributes;
     
-    BOOL found = NO;
-    
-    if (identifier >= kGEBoardVectorCount) {
-        [NSException raise:NSInvalidArgumentException format:@"identifier %lu is out of bounds", (unsigned long)identifier];
-    } else if (position == nil) {
-        [NSException raise:NSInvalidArgumentException format:@"position must not be nil"];
-    } else {
-        // Walking approach varies based upon whether it's for row-wise, column-wise, or diagonal-wise
-        if (identifier < kGEBoardDimension) {
-            // row-wise
-            NSUInteger row = identifier;
-
-            // Walk through the board examining positions for availability
-            for (NSUInteger column = 0; !found && column < kGEBoardDimension; column++) {
-                if (_pieces[row * kGEBoardDimension + column] == GameEnginePieceNone) {
-                    GameEnginePosition pos = {.row=row, .column=column};
-                    *position = pos;
-                    found = YES;
-                }
-            }
-        } else if (identifier < kGEBoardDimension * 2) {
-            // column-wise
-            NSUInteger column = identifier - kGEBoardDimension;
-
-            for (NSUInteger row = 0; !found && row < kGEBoardDimension; row++) {
-                if (_pieces[row * kGEBoardDimension + column] == GameEnginePieceNone) {
-                    GameEnginePosition pos = {.row=row, .column=column};
-                    *position = pos;
-                    found = YES;
-                }
-            }
-        } else {
-            // diagonal-wise
-            NSUInteger diagonal = (identifier == kGEBoardVectorCount-2) ? 0 : 1;
-
-            // To reduce code duplication, consolidate the calculation code in one loop, and extract the
-            // code that changes based upon the 'diagonal' parameter, here.
-            const NSUInteger rowStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
-            const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
-            
-            for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
-                GameEnginePiece piece = _pieces[row * kGEBoardDimension + column];
-                
-                if (piece == GameEnginePieceNone) {
-                    GameEnginePosition pos = {.row=row, .column=column};
-                    *position = pos;
-                    found = YES;
-                }
-            }
+    // Check if either player reached the winning score
+    for (GameBoardVectorAttributes *attribute in vectorAttributes) {
+        if (ABS(attribute.score) == kGEBoardDimension) {
+            return YES;
         }
     }
     
-    return found;
+    return NO;
+}
+
+- (BOOL)full {
+    for (int i = 0; i < 9; i++) {
+        if (_pieces[i] == GameEnginePieceNone)
+            return NO;
+    }
+    return YES;
 }
 
 - (GameEnginePiece)winner {
@@ -244,13 +219,5 @@
     
     return winningPiece;
 }
-
-- (GameEnginePiece*)mallocBoardWithPiece:(GameEnginePiece)piece atPosition:(GameEnginePosition)position {
-    GameEnginePiece *mutant = malloc(sizeof(GameEnginePiece) * kGEBoardSize);
-    memcpy(mutant, _pieces, sizeof(GameEnginePiece) * kGEBoardSize);
-    mutant[position.row * kGEBoardDimension + position.column] = piece;
-    return mutant;
-}
-
 
 @end
