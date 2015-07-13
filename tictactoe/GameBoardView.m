@@ -97,8 +97,6 @@ static NSString *kPlayerTwoText = @"O";
 }
 
 - (void)piecePressed:(UIButton*)button {
-    NSLog(@"piecePressed %@", button);
-    
     if (_delegate != nil && [_delegate respondsToSelector:@selector(gameBoardView:clickedButtonAtIndex:)]) {
         [_delegate gameBoardView:self clickedButtonAtIndex:button.tag];
     }
@@ -136,6 +134,42 @@ static NSString *kPlayerTwoText = @"O";
     UIButton *button = [self.subviews objectAtIndex:index];
     NSAssert(button.tag == index, @"Tag %d does not equal index %d", button.tag, index);
     button.userInteractionEnabled = NO;
+}
+
+- (void)highlightVectorIdentifier:(NSUInteger)identifier {
+    if (identifier >= kGEBoardVectorCount) {
+        [NSException raise:NSInvalidArgumentException format:@"identifier %lu is out of bounds", (unsigned long)identifier];
+    } else {
+        // Walking approach varies based upon whether it's for row-wise, column-wise, or diagonal-wise
+        if (identifier < kGEBoardDimension) {
+            // row-wise
+            NSUInteger row = identifier;
+            
+            // Walk through the board examining positions for availability
+            for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
+                [[[self subviews] objectAtIndex:row * kGEBoardDimension + column] setBackgroundColor:_highlightButtonColor forState:UIControlStateNormal];
+            }
+        } else if (identifier < kGEBoardDimension * 2) {
+            // column-wise
+            NSUInteger column = identifier - kGEBoardDimension;
+            
+            for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
+                [[[self subviews] objectAtIndex:row * kGEBoardDimension + column] setBackgroundColor:_highlightButtonColor forState:UIControlStateNormal];
+            }
+        } else {
+            // diagonal-wise
+            NSUInteger diagonal = (identifier == kGEBoardVectorCount-2) ? 0 : 1;
+            
+            // To reduce code duplication, consolidate the calculation code in one loop, and extract the
+            // code that changes based upon the 'diagonal' parameter, here.
+            const NSUInteger rowStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
+            const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
+            
+            for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
+                [[[self subviews] objectAtIndex:row * kGEBoardDimension + column] setBackgroundColor:_highlightButtonColor forState:UIControlStateNormal];
+            }
+        }
+    }
 }
 
 @end

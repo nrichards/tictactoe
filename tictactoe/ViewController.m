@@ -128,6 +128,7 @@ static const CGFloat kTTTCPUThinkTime = 0.3f;
             winner = @"Draw";
         }
         _statusText.text = [NSString stringWithFormat:@"Game over! Winner: %@", winner];
+        [_gameBoardView highlightVectorIdentifier:_gameEngine.winningVectorIdentifier];
         return;
     }
     
