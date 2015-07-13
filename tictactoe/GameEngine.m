@@ -98,9 +98,8 @@
         NSUInteger index = 0;
         
         for (int row = 0; row < kGEBoardDimension; row++) {
-            for (int column = 0; column < kGEBoardDimension; column++) {
-                index++;
                 if (_board.pieces[index] == GameEnginePieceNone) {
+            for (int column = 0; column < kGEBoardDimension; column++, index++) {
                     // Mutate board
                     _board.pieces[index] = piece;
                     
