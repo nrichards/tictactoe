@@ -10,12 +10,11 @@
 
 #import "GameBoard.h"
 
-#pragma mark - GameEngine support data structures
+#pragma mark - Support data structures
 
 // Status - is the game in progress, or completed?
 typedef NS_ENUM(NSUInteger, GameEngineStatus) {
     GameEngineStatusClear,
-    GameEngineStatusInProgress,
     GameEngineStatusComplete,
 };
 
@@ -33,11 +32,10 @@ typedef NS_ENUM(NSUInteger, GameEngineStatus) {
 
 #pragma mark - Pieces and places
 
-- (GamePiece)pieceForPosition:(GamePosition)position;
 - (void)setPosition:(GamePosition)position withPiece:(GamePiece)piece; // Capture human moves
 
 #pragma mark - Solver - a Tic-Tac-Toe algorithm
 
-- (BOOL)solveForPiece:(GamePiece)piece position:(GamePosition*)position; // find a desirous available position, return YES setting 'position' if successful, NO otherwise. exhaustive search.
+- (BOOL)solveForPiece:(GamePiece)piece position:(GamePosition*)position; // find a desirous available position, return YES setting 'position' if successful, NO otherwise
 
 @end

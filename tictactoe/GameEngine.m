@@ -11,25 +11,20 @@
 @implementation GameEngine
 
 - (instancetype)init {
-    // FIXME remove magic from 'winning vector' magic number -1
     self = [super init];
     if (self) {
         _status = GameEngineStatusClear;
         _board = [[GameBoard alloc] init];
-        _winningVectorIdentifier = 0;
-        _winner = GamePieceNone;
     }
     return self;
 }
 
 - (NSString*)description {
     return [NSString stringWithFormat:@"<%@ = %p; %@ = %@; %@ = %p; %@ = %@; %@ = %@>", [self class], self,
-            @"status", @(_status), @"board", _board, @"winningVectorIdentifier", @(_winningVectorIdentifier), @"winner", @(_winner)];
+            @"status", @(_status), @"board", _board, @"winningVectorIdentifier", @(self.winningVectorIdentifier), @"winner", @(self.winner)];
 }
 
-- (GamePiece)pieceForPosition:(GamePosition)position {
-    return [[self board] pieceAtRow:position.row column:position.column];
-}
+#pragma - Getters and setters
 
 - (void)setPosition:(GamePosition)position withPiece:(GamePiece)piece {
     GamePiece oldPiece = [[self board] pieceAtRow:position.row column:position.column];
@@ -48,31 +43,19 @@
     
     // Update status
     
-    NSArray *vectorAttributes = [[self board] vectorAttributes];
-    BOOL isPlayable = NO;
-    
-    for (GameBoardVectorAttributes *attribute in vectorAttributes) {
-        // Check if there are any pieces still playable
-        if (attribute.isPlayable) {
-            isPlayable = YES;
-        }
-        
-        // Check if either player reached the winning score
-        if (ABS(attribute.score) == kGEBoardDimension) {
-            _status = GameEngineStatusComplete;
-            _winningVectorIdentifier = attribute.identifier;
-            _winner = signbit(attribute.score) ? GamePiecePlayerTwo : GamePiecePlayerOne;
-            break; // is a terminal finding
-        } else if (attribute.isPlayable == NO) {
-            // Check if the game may be in progress: having some pieces in play, and some not
-            _status = GameEngineStatusInProgress;
-        }
-    }
-    
-    // If absolutely no pieces are playable then the game is over, a draw
-    if (isPlayable == NO) {
+    if (_board.won || _board.full) {
         _status = GameEngineStatusComplete;
     }
+}
+
+- (GamePiece)winner {
+    return _board.winner;
+}
+
+- (NSUInteger)winningVectorIdentifier {
+    NSUInteger identifier = 0;
+    [_board won:&identifier winner:nil];
+    return identifier;
 }
 
 #pragma mark - Solver
@@ -83,13 +66,9 @@
     if (position == nil) {
         [NSException raise:NSInvalidArgumentException format:@"position must not be nil"];
     } else if (piece != GamePiecePlayerOne && piece != GamePiecePlayerTwo ) {
-        [NSException raise:NSInvalidArgumentException format:@"piece %d must be either player one or two", piece];
+        [NSException raise:NSInvalidArgumentException format:@"piece %ld must be solvable for - either player one or two", (long)piece];
     } else {
-        // Reference:
-        // - http://neverstopbuilding.com/minimax
-        // - https://en.wikipedia.org/wiki/Minimax#Pseudocode
-        // - https://github.com/mattrajca/TTT
-        // - https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html
+        // FIXME nearly duplicate board looping code vs in -[solveForPieceHelper:board:alpha:beta]
         
         GamePiece opposite = piece == GamePiecePlayerOne ? GamePiecePlayerTwo : GamePiecePlayerOne;
         NSInteger score = opposite;
@@ -97,20 +76,23 @@
         NSUInteger bestColumn = 0;
         NSUInteger index = 0;
         
+        // Micro Minimax to get things started
         for (int row = 0; row < kGEBoardDimension; row++) {
             for (int column = 0; column < kGEBoardDimension; column++, index++) {
                 if (_board.pieces[index] == GamePieceNone) {
-                    // Mutate board
+                    // Mutate board temporarily
                     _board.pieces[index] = piece;
                     
                     // Search board
-                    GamePiece helperScore = [self solveForPieceHelper:_board piece:opposite alpha:GamePiecePlayerTwo beta:GamePiecePlayerOne];
+                    GamePiece helperScore = [self solveForPieceHelper:opposite board:_board alpha:GamePiecePlayerTwo beta:GamePiecePlayerOne];
                     
                     // Restore board
                     _board.pieces[index] = GamePieceNone;
                     
                     if ((piece == GamePiecePlayerOne && helperScore > score)
                         || (piece == GamePiecePlayerTwo && helperScore < score)) {
+                        found = YES;
+
                         score = helperScore;
                         bestRow = row;
                         bestColumn = column;
@@ -121,15 +103,13 @@
         
         position->row = bestRow;
         position->column = bestColumn;
-        
-        found = YES;
     }
     
     return found;
 }
 
-- (GamePiece)solveForPieceHelper:(GameBoard*)board piece:(GamePiece)piece alpha:(NSInteger)alpha beta:(NSInteger)beta {
-    // Minimax with alpha/beta 
+// Minimax with alpha-beta pruning
+- (GamePiece)solveForPieceHelper:(GamePiece)piece board:(GameBoard*)board alpha:(NSInteger)alpha beta:(NSInteger)beta {
     GamePiece opposite = piece == GamePiecePlayerOne ? GamePiecePlayerTwo : GamePiecePlayerOne;
 
     if (board.won) {
@@ -140,11 +120,11 @@
     
     for (NSUInteger index = 0; index < kGEBoardSize; index++) {
         if (board.pieces[index] == GamePieceNone) {
-            // Mutate board
+            // Mutate board temporarily
             board.pieces[index] = piece;
             
             // Search board
-            GamePiece helperScore = [self solveForPieceHelper:board piece:opposite alpha:alpha beta:beta];
+            GamePiece helperScore = [self solveForPieceHelper:opposite board:board alpha:alpha beta:beta];
             
             // Restore board
             board.pieces[index] = GamePieceNone;
@@ -153,12 +133,14 @@
                 alpha = helperScore;
                 
                 if (alpha >= beta) {
+                    // Prune
                     return alpha;
                 }
             } else if (piece == GamePiecePlayerTwo && helperScore < beta) {
                 beta = helperScore;
                 
                 if (alpha >= beta) {
+                    // Prune
                     return beta;
                 }
             }

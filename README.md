@@ -10,3 +10,8 @@ Mobile Tic-Tac-Toe game
 ## Credits
 
 * https://github.com/zmonteca/UIButton-PLColor - for the two-state colored button
+* Minimax algorithm insights:
+** http://neverstopbuilding.com/minimax
+** https://en.wikipedia.org/wiki/Minimax#Pseudocode
+** https://github.com/mattrajca/TTT
+** https://www.ocf.berkeley.edu/~yosenl/extras/alphabeta/alphabeta.html

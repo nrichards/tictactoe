@@ -45,7 +45,7 @@ static NSString *kPlayerTwoText = @"O";
 - (void)setup {
     self.clipsToBounds = YES;
     _normalButtonColor = [UIColor whiteColor];
-    _highlightButtonColor = [UIColor lightGrayColor];
+    _highlightButtonColor = [UIColor colorWithRed:0.2f green:1.0f blue:0.4f alpha:1.0f];
     _buttonTitleColor = [UIColor blackColor];
     _buttonFramePadding = 2.0f;
 }
@@ -105,7 +105,7 @@ static NSString *kPlayerTwoText = @"O";
 - (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index
 {
     if (index < 0 || index + 1 > [self.subviews count]) {
-        [NSException raise:NSInvalidArgumentException format:@"invalid index %d", index];
+        [NSException raise:NSInvalidArgumentException format:@"invalid index %ld", (long)index];
     }
     
     NSString *titleText;
@@ -122,22 +122,22 @@ static NSString *kPlayerTwoText = @"O";
     }
     
     UIButton *button = [self.subviews objectAtIndex:index];
-    NSAssert(button.tag == index, @"Tag %d does not equal index %d", button.tag, index);
+    NSAssert(button.tag == index, @"Tag %ld does not equal index %ld", (long)button.tag, (long)index);
     [button setTitle:titleText forState:UIControlStateNormal];
 }
 
 - (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index {
     if (index < 0 || index + 1 > [self.subviews count]) {
-        [NSException raise:NSInvalidArgumentException format:@"invalid index %d", index];
+        [NSException raise:NSInvalidArgumentException format:@"invalid index %ld", (long)index];
     }
 
     UIButton *button = [self.subviews objectAtIndex:index];
-    NSAssert(button.tag == index, @"Tag %d does not equal index %d", button.tag, index);
+    NSAssert(button.tag == index, @"Tag %ld does not equal index %ld", (long)button.tag, (long)index);
     button.userInteractionEnabled = NO;
 }
 
-- (void)highlightVectorIdentifier:(NSUInteger)identifier {
-    if (identifier >= kGEBoardVectorCount) {
+- (void)highlightIdentifier:(NSUInteger)identifier {
+    if (identifier >= kGEBoardIdentifierCount) {
         [NSException raise:NSInvalidArgumentException format:@"identifier %lu is out of bounds", (unsigned long)identifier];
     } else {
         // Walking approach varies based upon whether it's for row-wise, column-wise, or diagonal-wise
@@ -158,7 +158,7 @@ static NSString *kPlayerTwoText = @"O";
             }
         } else {
             // diagonal-wise
-            NSUInteger diagonal = (identifier == kGEBoardVectorCount-2) ? 0 : 1;
+            NSUInteger diagonal = (identifier == kGEBoardIdentifierCount-2) ? 0 : 1;
             
             // To reduce code duplication, consolidate the calculation code in one loop, and extract the
             // code that changes based upon the 'diagonal' parameter, here.

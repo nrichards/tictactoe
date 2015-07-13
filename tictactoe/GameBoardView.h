@@ -21,7 +21,7 @@
 - (void)setPiece:(GamePiece)piece forIndex:(NSInteger)index;
 
 - (void)setUserInteraction:(BOOL)enabled forPiece:(NSInteger)index; // Control piece's userInteraction
-- (void)highlightVectorIdentifier:(NSUInteger)vectorIdentifier; // Illustrates the winner
+- (void)highlightIdentifier:(NSUInteger)vectorIdentifier; // Illustrates the winner
 
 @end
 

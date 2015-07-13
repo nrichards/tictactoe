@@ -8,27 +8,6 @@
 
 #import "GameBoard.h"
 
-#pragma mark - GameBoardVectorAttributes
-
-@implementation GameBoardVectorAttributes
-
-- (instancetype)initWithIdentifier:(NSUInteger)identifier {
-    self = [super init];
-    if (self) {
-        _identifier = identifier;
-    }
-    return self;
-}
-
-- (NSString*)description {
-    return [NSString stringWithFormat:@"<%@ = %p; %@ = %@; %@ = %@; %@ = %@>", [self class], self,
-            @"identifier", @(_identifier), @"score", @(_score), @"isPlayable",@(_isPlayable)];
-}
-
-@end
-
-#pragma mark - GameBoard
-
 @implementation GameBoard
 
 - (instancetype)init {
@@ -43,18 +22,6 @@
     return self;
 }
 
-- (instancetype)copyWithZone:(NSZone *)zone {
-    GameBoard *newBoard = [[self class] allocWithZone:zone];
-    if (_pieces) {
-        // FIXME duplicate code
-        newBoard->_pieces = malloc(sizeof(GamePiece) * kGEBoardSize);
-        memcpy(newBoard->_pieces, _pieces, sizeof(GamePiece) * kGEBoardSize);
-    } else {
-        newBoard->_pieces = nil;
-    }
-    return newBoard;
-}
-
 - (void)dealloc {
     free(_pieces);
     _pieces = 0ULL;
@@ -67,7 +34,9 @@
         if (pieces.length > 0) {
             [pieces appendString:@", "];
         }
+        
         [pieces appendString:@"["];
+        
         for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
             NSString *comma;
             if (column != kGEBoardDimension - 1) {
@@ -75,16 +44,20 @@
             } else {
                 comma = @"";
             }
-            [pieces appendFormat:@"%d%@", _pieces[row * kGEBoardDimension + column], comma];
+            [pieces appendFormat:@"%ld%@", (long)_pieces[row * kGEBoardDimension + column], comma];
         }
+        
         [pieces appendString:@"]"];
     }
     
     return [NSString stringWithFormat:@"<%@ = %p; pieces = [%@]>", [self class], self, pieces];
 }
 
+#pragma mark - Getters and setters
+
 - (GamePiece)pieceAtRow:(NSUInteger)row column:(NSUInteger)column {
     NSUInteger arrayIndex = row * kGEBoardDimension + column;
+    
     if (arrayIndex >= kGEBoardSize) {
         [NSException raise:NSInvalidArgumentException format:@"Row %lu column %lu is out of bounds", (unsigned long)row, (unsigned long)column];
         return GamePieceNone;
@@ -96,6 +69,7 @@
 
 - (void)setPiece:(GamePiece)piece atRow:(NSUInteger)row column:(NSUInteger)column {
     NSUInteger arrayIndex = row * kGEBoardDimension + column;
+    
     if (arrayIndex >= kGEBoardSize) {
         [NSException raise:NSInvalidArgumentException format:@"Row %lu column %lu is out of bounds", (unsigned long)row, (unsigned long)column];
         return;
@@ -109,114 +83,78 @@
     _pieces = pieces; // Take ownership.
 }
 
-// Gather statistics on the status of the board
-- (NSArray*)vectorAttributes {
-    // FIXME optimize reallocation
-    // FIXME remove redundancy
-    // FIXME optimize over-setting isPlayable
-    
-    NSMutableArray *attributes = [NSMutableArray arrayWithCapacity:kGEBoardVectorCount];
-    GameBoardVectorAttributes *attribute;
-    NSUInteger identifier = 0;
-    
-    // Walk across the columns of each row
-    for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        NSInteger score = 0;
-        
-        for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-            GamePiece piece = _pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GamePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-        
-        attribute.score = score;
-        [attributes addObject:attribute];
-    }
-    
-    // Walk across the rows of each column
-    for (NSUInteger column = 0; column < kGEBoardDimension; column++) {
-        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        NSInteger score = 0;
-        
-        for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
-            GamePiece piece = _pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GamePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-        
-        attribute.score = score;
-        [attributes addObject:attribute];
-    }
-    
-    // Walk across each diagonal, starting at either top-left or bottom-left
-    for (NSUInteger diagonal = 0; diagonal < 2; diagonal++) {
-        attribute = [[GameBoardVectorAttributes alloc] initWithIdentifier:identifier++];
-        NSInteger score = 0;
-
-        // To reduce code duplication, consolidate the calculation code in one loop, and extract the
-        // code that changes based upon the 'diagonal' parameter, here.
-        const NSUInteger rowStart = (diagonal == 0 ? 0 : kGEBoardDimension-1);
-        const NSUInteger rowIncr = (diagonal == 0 ? 1 : -1);
-
-        for (NSInteger row = rowStart, column = 0; column != kGEBoardDimension; row += rowIncr, column++) {
-            GamePiece piece = _pieces[row * kGEBoardDimension + column];
-            score += piece;
-            
-            if (piece == GamePieceNone) {
-                attribute.isPlayable = YES;
-            }
-        }
-        
-        attribute.score = score;
-        [attributes addObject:attribute];
-    }
-    
-    return attributes;
+- (BOOL)won {
+    return [self won:nil winner:nil];
 }
 
-- (BOOL)won {
-    NSArray *vectorAttributes = self.vectorAttributes;
+- (BOOL)won:(NSUInteger*)pIdentifier winner:(GamePiece *)pWinner {
+    NSAssert(kGEBoardDimension == 3, @"Depends upon hardcoded values");
     
-    // Check if either player reached the winning score
-    for (GameBoardVectorAttributes *attribute in vectorAttributes) {
-        if (ABS(attribute.score) == kGEBoardDimension) {
-            return YES;
+    BOOL result = NO;
+    NSUInteger identifier = 0;
+    GamePiece winner = GamePieceNone;
+    
+    for (NSUInteger row = 0; row < kGEBoardDimension; row++) {
+        GamePiece middleForRow = _pieces[row * kGEBoardDimension + 1];
+        GamePiece middleForColumn = _pieces[1 * kGEBoardDimension + row];
+        
+        if (middleForRow != GamePieceNone) {
+            if (middleForRow == _pieces[row * kGEBoardDimension + 0] && middleForRow == _pieces[row * kGEBoardDimension + 2]) {
+                result = YES;
+                identifier = row;
+                winner = middleForRow;
+            }
+        }
+
+        if (middleForColumn != GamePieceNone) {
+            if (middleForColumn == _pieces[0 * kGEBoardDimension + row] && middleForColumn == _pieces[2 * kGEBoardDimension + row]) {
+                result = YES;
+                identifier = row + kGEBoardDimension;
+                winner = middleForColumn;
+            }
+        }
+    }
+
+    if (result == NO) {
+        GamePiece middle = _pieces[1 * kGEBoardDimension + 1];
+        
+        if (middle != GamePieceNone) {
+            if (middle == _pieces[0 * kGEBoardDimension + 0] && middle == _pieces[2 * kGEBoardDimension + 2]) {
+                result = YES;
+                identifier = kGEBoardDimension * 2;
+                winner = middle;
+            } else if (middle == _pieces[0 * kGEBoardDimension + 2] && middle == _pieces[2 * kGEBoardDimension + 0]) {
+                result = YES;
+                identifier = kGEBoardDimension * 2 + 1;
+                winner = middle;
+            }
         }
     }
     
-    return NO;
+    if (pIdentifier) {
+        *pIdentifier = identifier;
+    }
+    
+    if (pWinner) {
+        *pWinner = winner;
+    }
+    
+    return result;
 }
 
 - (BOOL)full {
-    for (int i = 0; i < 9; i++) {
-        if (_pieces[i] == GamePieceNone)
+    for (NSUInteger index = 0; index < kGEBoardSize; index++) {
+        if (_pieces[index] == GamePieceNone) {
             return NO;
+        }
     }
+    
     return YES;
 }
 
 - (GamePiece)winner {
-    NSArray *attributes = [self vectorAttributes];
     GamePiece winningPiece = GamePieceNone;
-    
-    for (GameBoardVectorAttributes *attribute in attributes) {
-        if (ABS(attribute.score) == kGEBoardDimension) {
-            if (winningPiece != GamePieceNone) {
-                // Error - corrupt board with more than one winner
-                return GamePieceNone;
-            }
-            
-            winningPiece = signbit(attribute.score) ? GamePiecePlayerTwo : GamePiecePlayerOne; // TRICKY
-        }
-    }
-    
+    [self won:nil winner:&winningPiece];
     return winningPiece;
 }
 
